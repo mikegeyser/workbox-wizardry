@@ -167,6 +167,21 @@ navigator.serviceWorker.addEventListener('controllerchange', () => {
 
 # Level 7:  Background Sync
 
+```
+const queue = new workbox.backgroundSync.Queue('pending-orders');
+
+self.addEventListener('fetch', (event) => {
+    if (event.request.method === 'POST' && event.request.url.match(/.*orders/)) {
+        let response = fetch(event.request.clone())
+            .catch((err) => {
+                return queue.addRequest(event.request.clone())
+                    .then(() => new Response(JSON.stringify({ success: true }), { status: 200 }))
+            });
+
+        event.respondWith(response);
+    }
+});
+```
 
 # Level 8: Streams
 

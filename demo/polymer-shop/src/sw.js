@@ -32,3 +32,27 @@ self.addEventListener('install', (event) => {
         }
     };
 });
+
+// workbox.routing.registerRoute(
+//     /.*orders$/,
+//     new workbox.strategies.NetworkOnly({
+//         plugins: [
+//             new workbox.backgroundSync.Plugin('pending-orders')
+//         ],
+//     }),
+//     'POST'
+// );
+
+const queue = new workbox.backgroundSync.Queue('pending-orders');
+
+self.addEventListener('fetch', (event) => {
+    if (event.request.method === 'POST' && event.request.url.match(/.*orders/)) {
+        let response = fetch(event.request.clone())
+            .catch((err) => {
+                return queue.addRequest(event.request.clone())
+                    .then(() => new Response(JSON.stringify({ success: true }), { status: 200 }))
+            });
+
+        event.respondWith(response);
+    }
+});
