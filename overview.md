@@ -106,11 +106,11 @@ workbox.routing.registerRoute(
 
 ```js
 plugins: [
-      new workbox.expiration.Plugin({
-        maxEntries: 60,
-        maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
-      }),
-    ],
+  new workbox.expiration.Plugin({
+    maxEntries: 60,
+    maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
+  }),
+]
 ```
 
 # Level 4: Caching strategies
@@ -128,23 +128,15 @@ workbox.routing.registerRoute(
 
 # Level 5: Broadcast channel
 
-Need to find a reason to use broadcast channel? 
-For sw install step.
-
 ```js
 self.addEventListener('install', (event) => {
     console.log('Service worker is being installed.');
-
-    const channel = new BroadcastChannel('service-worker-channel');
-    channel.postMessage({ promptToReload: true });
-
-    channel.onmessage = (message) => {
-        if (message.data.skipWaiting) {
-            console.log('Skipping waiting and installing service worker.');
-            self.skipWaiting();
-        }
-    };
 });
+```
+
+```js
+const channel = new BroadcastChannel('service-worker-channel');
+channel.postMessage({ promptToReload: true });
 ```
 
 ```js
@@ -156,7 +148,18 @@ channel.onmessage = (message) => {
     };
   }
 }
+```
 
+```js
+channel.onmessage = (message) => {
+    if (message.data.skipWaiting) {
+        console.log('Skipping waiting and installing service worker.');
+        self.skipWaiting();
+    }
+};
+```
+
+```js
 navigator.serviceWorker.addEventListener('controllerchange', () => {
   window.location.reload();
 });
@@ -167,20 +170,31 @@ navigator.serviceWorker.addEventListener('controllerchange', () => {
 
 # Level 7:  Background Sync
 
-```
+```js
 const queue = new workbox.backgroundSync.Queue('pending-orders');
+```
 
+```js
 self.addEventListener('fetch', (event) => {
     if (event.request.method === 'POST' && event.request.url.match(/.*orders/)) {
-        let response = fetch(event.request.clone())
-            .catch((err) => {
-                return queue.addRequest(event.request.clone())
-                    .then(() => new Response(JSON.stringify({ success: true }), { status: 200 }))
-            });
 
-        event.respondWith(response);
     }
 });
+```
+
+```js
+let response = fetch(event.request.clone())
+```
+
+```js
+    .catch((err) => {
+        return queue.addRequest(event.request.clone())
+            .then(() => new Response(JSON.stringify({ success: true }), { status: 200 }))
+    });
+```
+
+```js
+event.respondWith(response);
 ```
 
 # Level 8: Streams
