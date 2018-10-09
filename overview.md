@@ -126,7 +126,11 @@ workbox.routing.registerRoute(
   );
 ```
 
-# Level 5: Broadcast channel
+# Level 5: Traditional
+
+
+
+# Level 6: Broadcast channel
 
 ```js
 self.addEventListener('install', (event) => {
@@ -165,36 +169,22 @@ navigator.serviceWorker.addEventListener('controllerchange', () => {
 });
 ```
 
-# Level 6: Traditional
-
-
 # Level 7:  Background Sync
 
-```js
+``` js
 const queue = new workbox.backgroundSync.Queue('pending-orders');
-```
 
-```js
 self.addEventListener('fetch', (event) => {
     if (event.request.method === 'POST' && event.request.url.match(/.*orders/)) {
+        let response = fetch(event.request.clone())
+            .catch((err) => {
+                return queue.addRequest(event.request.clone())
+                    .then(() => new Response(JSON.stringify({ success: true }), { status: 200 }))
+            });
 
+        event.respondWith(response);
     }
 });
-```
-
-```js
-let response = fetch(event.request.clone())
-```
-
-```js
-    .catch((err) => {
-        return queue.addRequest(event.request.clone())
-            .then(() => new Response(JSON.stringify({ success: true }), { status: 200 }))
-    });
-```
-
-```js
-event.respondWith(response);
 ```
 
 # Level 8: Streams
