@@ -128,7 +128,17 @@ workbox.routing.registerRoute(
 
 # Level 5: Traditional
 
+Run `workbox wizard` in the root of the site, using `wwwroot` as the directory.
 
+Install it in `_Layout.cshtml`
+
+```
+	<script>
+		if ('serviceWorker' in navigator) {
+			navigator.serviceWorker.register('sw.js');
+		}
+	</script>
+```
 
 # Level 6: Broadcast channel
 
@@ -189,6 +199,6 @@ self.addEventListener('fetch', (event) => {
 
 # Level 8: Streams
 
-
+???
 
 
