@@ -88,8 +88,6 @@ Change the config to respect the inject manifest.
 ```bash
 >> workbox injectManifest workbox-config.js
 
->> workbox copyLibraries build/default/
-
 >> http-server build/default/ -c 0
 ```
 

@@ -73,13 +73,7 @@
 		</script>
 		<script src="~/js/site.min.js" asp-append-version="true"></script>
 	</environment>
-
-	<script>
-		if ('serviceWorker' in navigator) {
-			navigator.serviceWorker.register('sw.js');
-		}
-	</script>
-
+	
 	@RenderSection("scripts", required: false)
 </body>
 </html>
