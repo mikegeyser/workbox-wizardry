@@ -1,11 +1,241 @@
-# Workbox Wizardry
+# 1. Offline events
 
-<img align="left" src="https://secure.meetupstatic.com/photos/event/6/c/f/8/global_456867896.jpeg">
+> ## \_1
 
-[A talk for the Google Developer Group Johannesburg meetup on 10 October 2018](https://www.meetup.com/GDGJohannesburg/events/254788415/)
+```js
+window.addEventListener('online', () => this.online(true));
+window.addEventListener('offline', () => this.online(false));
+```
 
-Service workers are powerful features of modern web experiences that seem like a whole bunch of black magic to the uninitiated. A proliferation of frameworks, an array of browser APIs, and a slew of tools all combine to cast a pall of confusion over the topic. Never fear; we will use the incredible Workbox library (and tools) to dispel all shadows of doubt, and confidently build service workers.
+> ## \_2
 
-This code-oriented talk takes an extensive look at the different ways workbox can be used. It shows different pre- and runtime-caching strategies, explains the challenges behind service worker life cycle events, and explores offline strategies using background sync. It will even show you how workbox can be used on traditional server-side websites - giving them a real performance boost. So come along, level up, and add a few more incantations to your spellbook.
+```js
+online(online) {
+    const showToast = online !== this.state.online;
+    if (showToast) {
+      setTimeout(() => this.setState({ showToast: null }), 2000);
+    }
 
-🐦 [@mikegeyser](https://twitter.com/mikegeyser)
+    const message = online
+      ? "Yay, the application is online!"
+      : "Oh no, the app seems to be offline... ";
+
+    this.setState({online, toastMessage: message, showToast: "show" });
+}
+```
+
+> ## \_3
+
+```jsx
+<Toast message={this.state.toastMessage} show={this.state.showToast} />
+```
+
+# 2. Precaching
+
+> ## \_4
+
+```js
+const precacheManifest = [];
+
+workbox.precaching.precacheAndRoute(precacheManifest);
+```
+
+# 3. Runtime route caching
+
+> ## \_5
+
+```js
+const dataCacheConfig = {
+  cacheName: 'meme-data'
+};
+
+workbox.routing.registerRoute(
+  /.*categories/,
+  workbox.strategies.cacheFirst(dataCacheConfig),
+  'GET'
+);
+workbox.routing.registerRoute(
+  /.*templates/,
+  workbox.strategies.cacheFirst(dataCacheConfig),
+  'GET'
+);
+workbox.routing.registerRoute(
+  /.*memes\/.\w+/,
+  workbox.strategies.staleWhileRevalidate(dataCacheConfig),
+  'GET'
+);
+workbox.routing.registerRoute(
+  /.*.(?:png|jpg|jpeg|svg)$/,
+  workbox.strategies.cacheFirst({ cacheName: 'meme-images' }),
+  'GET'
+);
+```
+
+# 6. Exception handling
+
+> ## \_6
+
+```js
+const apiStrategy = async ({ event }) => {
+  try {
+  } catch (error) {}
+};
+```
+
+> ## \_7
+
+```js
+return await workbox.strategies
+  .staleWhileRevalidate(dataCacheConfig)
+  .handle({ event });
+```
+
+> ## \_8
+
+```js
+const fake = {
+  id: 0,
+  top: 'memes',
+  bottom: 'not found',
+  template: 'notfound.jpg'
+};
+return new Response(JSON.stringify([fake]));
+```
+
+> ## \_9
+
+```js
+workbox.routing.setCatchHandler(({ event }) => {
+  switch (event.request.destination) {
+    case 'image':
+      return caches.match('/images/facepalm.jpg');
+    default:
+      return Response.error();
+  }
+});
+```
+
+# 7. Background sync
+
+> ## \_10
+
+```js
+const queue = new workbox.backgroundSync.Queue('memes-to-be-saved');
+```
+
+> ## \_11
+
+```js
+self.addEventListener('fetch', event => {
+  if (event.request.url.match(/.*memes/) && event.request.method === 'POST') {
+    let response = fetch(event.request.clone()).catch(() =>
+      queueChange(event.request.clone())
+    );
+
+    event.respondWith(response);
+  }
+});
+```
+
+> ## \_12
+
+```js
+async function queueChange(request) {
+  await queue.addRequest(request.clone());
+
+  return new Response('', { status: 200 });
+}
+```
+
+> ## \_13
+
+```js
+const meme = await request.clone().json();
+meme.offline = true;
+
+let memes = (await idbKeyval.get('memes')) || [];
+idbKeyval.set('memes', [...memes, meme]);
+```
+
+# 8. Workbox streams
+
+> ## \_14
+
+```js
+const streamStrategy = workbox.streams.strategy([
+  () => '[',
+  async () => {
+    /* Return the copied memes */
+  },
+  async e => {
+    /* Return the cached memes */
+  },
+  () => ']'
+]);
+```
+
+> ## \_15
+
+```js
+const data = await idbKeyval.get('memes');
+return stringify(data, ',');
+```
+
+> ## \_16
+
+```js
+const response = await apiStrategy(e);
+const data = await response.json();
+return stringify(data);
+```
+
+> ## \_17
+
+```js
+function stringify(data, suffix) {
+  if (!data || !data.length) {
+    return '';
+  }
+
+  let result = data.map(item => JSON.stringify(item)).join(',');
+
+  if (suffix) {
+    result += suffix;
+  }
+
+  return result;
+}
+```
+
+## NB: Use the streamStrategy
+
+# 9. Clean up
+
+> ## \_18
+
+```js
+{
+  callbacks: {
+    queueDidReplay: () => clear();
+  }
+}
+```
+
+> ## \_19
+
+```js
+async function clear() {
+  // Clear store
+  await idbKeyval.del('memes');
+
+  // Clear cache
+  let cache = await caches.open('meme-data');
+  let keys = await cache.keys();
+
+  for (let key of keys) {
+    if (/.*memes\/.\w+/.test(key.url)) {
+      cache.delete(key);
+    }
+  }
+}
+```

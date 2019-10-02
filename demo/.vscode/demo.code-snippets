@@ -27,9 +27,7 @@
   },
   "Toast message": {
     "prefix": "_3",
-    "body": [
-      "<Toast message={this.state.toastMessage} show={this.state.showToast} />"
-    ],
+    "body": ["<Toast message={this.state.toastMessage} show={this.state.showToast} />"],
     "description": "Toast message"
   },
   "Precache manifest": {
@@ -104,9 +102,7 @@
   },
   "Background sync queue": {
     "prefix": "_10",
-    "body": [
-      "const queue = new workbox.backgroundSync.Queue('memes-to-be-saved');"
-    ],
+    "body": ["const queue = new workbox.backgroundSync.Queue('memes-to-be-saved');"],
     "description": "Background sync queue"
   },
   "Listen to the fetch event": {
@@ -164,10 +160,7 @@
   },
   "Stream the copied memes": {
     "prefix": "_15",
-    "body": [
-      "const data = await idbKeyval.get('memes');",
-      "return stringify(data, ',');"
-    ],
+    "body": ["const data = await idbKeyval.get('memes');", "return stringify(data, ',');"],
     "description": "Stream the copied memes"
   },
   "Stream the cached memes": {
@@ -200,13 +193,7 @@
   },
   "Queue replayed callback": {
     "prefix": "_18",
-    "body": [
-      "{",
-      "  callbacks: {",
-      "    queueDidReplay: () => clear()",
-      "  }",
-      "}"
-    ],
+    "body": ["{", "  callbacks: {", "    queueDidReplay: () => clear()", "  }", "}"],
     "description": "Queue replayed callback"
   },
   "Clear": {
