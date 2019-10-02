@@ -46,10 +46,10 @@
       "  cacheName: 'meme-data'",
       "};",
       "",
-      "workbox.routing.registerRoute(/.*categories/, workbox.strategies.cacheFirst(dataCacheConfig), 'GET');",
-      "workbox.routing.registerRoute(/.*templates/, workbox.strategies.cacheFirst(dataCacheConfig), 'GET');",
-      "workbox.routing.registerRoute(/.*memes\\/.\\w+/, workbox.strategies.staleWhileRevalidate(dataCacheConfig), 'GET');",
-      "workbox.routing.registerRoute(/.*.(?:png|jpg|jpeg|svg)$/, workbox.strategies.cacheFirst({cacheName: 'meme-images'}), 'GET');"
+      "workbox.routing.registerRoute(/.*categories/, new workbox.strategies.CacheFirst(dataCacheConfig), 'GET');",
+      "workbox.routing.registerRoute(/.*templates/, new workbox.strategies.CacheFirst(dataCacheConfig), 'GET');",
+      "workbox.routing.registerRoute(/.*memes\\/.\\w+/, new workbox.strategies.StaleWhileRevalidate(dataCacheConfig), 'GET');",
+      "workbox.routing.registerRoute(/.*.(?:png|jpg|jpeg|svg)$/, new workbox.strategies.CacheFirst({cacheName: 'meme-images'}), 'GET');"
     ],
     "description": "Runtime route caching"
   },
@@ -69,7 +69,7 @@
   "Try staleWhileRevalidate": {
     "prefix": "_7",
     "body": [
-      "return await workbox.strategies.staleWhileRevalidate(dataCacheConfig).handle({ event });"
+      "return await new workbox.strategies.StaleWhileRevalidate(dataCacheConfig).handle({ event });"
     ],
     "description": "Try staleWhileRevalidate"
   },
@@ -124,7 +124,7 @@
     "prefix": "_12",
     "body": [
       "async function queueChange(request) {",
-      "  await queue.addRequest(request.clone());",
+      "  await queue.pushRequest({ request: request.clone() });",
       "",
       "  return new Response('', { status: 200 });",
       "}"
@@ -193,7 +193,14 @@
   },
   "Queue replayed callback": {
     "prefix": "_18",
-    "body": ["{", "  callbacks: {", "    queueDidReplay: () => clear()", "  }", "}"],
+    "body": [
+      "{",
+      "  onSync: async ({ queue }) => {",
+      "    queue.replayRequests();",
+      "    clear();",
+      "  }",
+      "}"
+    ],
     "description": "Queue replayed callback"
   },
   "Clear": {
